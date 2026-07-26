@@ -36,12 +36,8 @@ class StudentData(BaseModel):
 class PredictionResponce(BaseModel):
     predicted_mental_health_score: float
 
-@app.get('/')
-def greet():
-    return {'Assalam u Alaikum'}
 
-
-@app.post('/predict', response_model=PredictionResponce)
+@app.post('/', response_model=PredictionResponce)
 def predict(data: StudentData):
 
     country_group = data.country if data.country in top_countries else 'Other'
