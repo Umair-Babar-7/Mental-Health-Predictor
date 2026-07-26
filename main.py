@@ -1,10 +1,15 @@
+from pathlib import Path
+
 import joblib
 import pandas as pd
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from typing import Literal
-from fastapi.middleware.cors import CORSMiddleware
 
+BASE_DIR = Path(__file__).resolve().parent
 model = joblib.load('Mental_Health_Model.pkl')
 
 app = FastAPI()
@@ -16,7 +21,10 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+app.mount('/static', StaticFiles(directory=str(BASE_DIR)), name='static')
+
 top_countries = ['Other', 'India', 'USA', 'Canada', 'Australia', 'UK', 'Germany', 'Mexico', 'Turkey', 'France']
+
 
 class StudentData(BaseModel):
     age: int = Field(..., ge=10, le=100)
@@ -32,12 +40,23 @@ class StudentData(BaseModel):
     sleep_hours_per_night: float = Field(..., ge=0, le=24)
     stress_level: Literal['Medium', 'Low', 'Very High', 'High']
 
+
 # Describe what we send back
 class PredictionResponce(BaseModel):
     predicted_mental_health_score: float
 
 
-@app.post('/', response_model=PredictionResponce)
+@app.get('/', include_in_schema=False)
+def home_page():
+    return FileResponse(BASE_DIR / 'index.html')
+
+
+@app.get('/predict-page', include_in_schema=False)
+def prediction_page():
+    return FileResponse(BASE_DIR / 'index.html')
+
+
+@app.post('/predict', response_model=PredictionResponce)
 def predict(data: StudentData):
 
     country_group = data.country if data.country in top_countries else 'Other'

@@ -1,9 +1,12 @@
+const homeView = document.getElementById('home-view');
+const predictView = document.getElementById('predict-view');
 const form = document.getElementById('predict-form');
 const resultValue = document.getElementById('result-value');
 const statusBox = document.getElementById('status-box');
 const submitButton = document.getElementById('submit-button');
+const startButton = document.getElementById('start-button');
 
-const apiUrl = 'http://127.0.0.1:8500/predict';
+const apiUrl = '/predict';
 
 function setStatus(message, type = 'default') {
   statusBox.textContent = message;
@@ -57,9 +60,7 @@ async function submitPrediction(payload) {
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
@@ -84,6 +85,23 @@ async function submitPrediction(payload) {
   }
 }
 
+function showView(viewName) {
+  homeView.classList.toggle('hidden', viewName !== 'home');
+  predictView.classList.toggle('hidden', viewName !== 'predict');
+}
+
+function initRouting() {
+  const path = window.location.pathname;
+  showView(path === '/predict-page' ? 'predict' : 'home');
+  if (path === '/predict-page') {
+    setStatus('Complete the form and click Predict to generate your score.');
+  }
+}
+
+startButton?.addEventListener('click', () => {
+  window.location.href = '/predict-page';
+});
+
 form.addEventListener('submit', (event) => {
   event.preventDefault();
 
@@ -99,4 +117,4 @@ form.addEventListener('submit', (event) => {
   submitPrediction(data);
 });
 
-setStatus('Complete the form and click Predict to generate your score.');
+initRouting();
